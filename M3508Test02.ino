@@ -8,7 +8,8 @@ MCP_CAN CAN(10); // CAN CS: pin 10
 
 const int milli_amperes[4] = {10, 0, 0, 0};
 
-void scaleCurrentToRange(signed int milliAmperes[4], byte outTxBuf[8]);
+void scaleCurrentToRange(const signed int milliAmperes[4], byte outTxBuf[8]);
+void deriveFeedbackFields(const byte rxBuf[8], float *outAngle, unsigned int *outRpm, signed int *outAmp, unsigned int *outTemp);
 
 /// @brief 前回のアップデート時間
 long previousMillis;
@@ -57,17 +58,37 @@ void loop()
             Serial.print(rxBuf[i], HEX);
             Serial.print(" ");
         }
-        Serial.println();
+        Serial.print("\n");
 
+        unsigned long controllerId = rxId - 0x200;
+
+        float angle;
+        unsigned int rpm;
+        signed int amp;
+        unsigned int temp;
+        deriveFeedbackFields(rxBuf, &angle, &rpm, &amp, &temp);
+
+        Serial.print("angle: ");
+        Serial.print(angle);
+        Serial.print(", ");
+        Serial.print("rpm: ");
+        Serial.print(rpm);
+        Serial.print(", ");
+        Serial.print("amp: ");
+        Serial.print(amp);
+        Serial.print(", ");
+        Serial.print("temp: ");
+        Serial.print(temp);
+        Serial.print("\n");
     }
 
     digitalWrite(13, HIGH);
 }
 
-/// -20000mA\~20000mAの4要素の配列を、CANで速度コントローラに送信する8バイトの配列に変換
-/// @param milliAmperes -20000\~20000の電流値(mA)を持つの長さ4の配列. 要素番号と速度コントローラのIDが対応してる
+/// @brief 4つの電流値を、CANで速度コントローラに送信するデータへ変換
+/// @param milliAmperes 4つの-20000\~20000の電流値(mA)を格納した配列 (要素番号と速度コントローラIDが対応)
 /// @param outTxBuf 結果の書き込み用配列
-void scaleCurrentToRange(signed int milliAmperes[4], byte outTxBuf[8])
+void scaleCurrentToRange(const signed int milliAmperes[4], byte outTxBuf[8])
 {
     int i;
     for (i = 0; i < 4; i++)
@@ -78,4 +99,18 @@ void scaleCurrentToRange(signed int milliAmperes[4], byte outTxBuf[8])
         outTxBuf[i * 2] = upper;
         outTxBuf[i * 2 + 1] = lower;
     }
+}
+
+/// @brief 速度コントローラから受け取ったデータから、フィードバック値を導出
+/// @param rxBuf CANで受信した配列
+/// @param outAngle ロータの角度(0°\~360°) (結果書き込み用)
+/// @param outRpm 回転速度(rpm) (結果書き込み)
+/// @param outAmp 実際のトルク電流(?) (結果書き込み用)
+/// @param outTemp モータの温度(℃) (結果書き込み用)
+void deriveFeedbackFields(const byte rxBuf[8], float *outAngle, unsigned int *outRpm, signed int *outAmp, unsigned int *outTemp)
+{
+    *outAngle = (float)(rxBuf[0] << 8 | rxBuf[1]) * 360.0f / 8191.0f;
+    *outRpm = rxBuf[2] << 8 | rxBuf[3];
+    *outAmp = rxBuf[4] << 8 | rxBuf[5];
+    *outTemp = rxBuf[6];
 }
