@@ -35,8 +35,32 @@ void setup()
 
 void loop()
 {
+    static float angle;
+    static unsigned int rpm;
+    static signed int amp;
+    static unsigned int temp;
+
+    static int targetRpm;
+
+    static const float kp = 0.000001f;
+    static const float ki = 0.0f;
+    static const float kd = 0.0f;
+    static float integral;
+    static float previousError;
+
     if ((millis() - previousMillis) > CAN_SEND_INTERVAL)
     {
+        signed int currentError = targetRpm - rpm;
+        integral += currentError * CAN_SEND_INTERVAL;
+        float derivative = (currentError - previousError) / CAN_SEND_INTERVAL; 
+        float output = kp * currentError + ki * integral + kd * derivative;
+        previousError = currentError;
+        output = min(output, 5000);  // 安全装置
+
+        Serial.println("output: ");
+        Serial.println(output);
+        Serial.println("\n");
+
         byte txBuf[8];
         scaleCurrentToRange(milli_amperes, txBuf);
         CAN.sendMsgBuf(CAN_ID, 0, 8, txBuf);
@@ -62,10 +86,6 @@ void loop()
 
         unsigned long controllerId = rxId - 0x200;
 
-        float angle;
-        unsigned int rpm;
-        signed int amp;
-        unsigned int temp;
         deriveFeedbackFields(rxBuf, &angle, &rpm, &amp, &temp);
 
         Serial.print("angle: ");
