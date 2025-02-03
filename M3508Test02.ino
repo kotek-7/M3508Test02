@@ -1,5 +1,6 @@
 #include <mcp_can.h>
 #include <SPI.h>
+#include <PIDController.hpp>
 
 constexpr uint16_t can_id = 0x200;
 constexpr uint32_t can_send_interval = 100;
