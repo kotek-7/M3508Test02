@@ -1,8 +1,12 @@
-#include "PIDController.hpp"
+#include <Arduino.h>
+#include <PIDController.hpp>
+
+constexpr uint8_t debug_print_cycle = 20;
 
 PIDController::PIDController(float kp, float ki, float kd, float clamping_output, uint32_t interval)
     : kp(kp), ki(ki), kd(kd), clamping_output(clamping_output), interval(interval)
 {
+    count = 0;
 }
 
 void PIDController::set_feedback_values(float angle, int16_t rpm, int16_t amp, uint8_t temp)
@@ -11,6 +15,22 @@ void PIDController::set_feedback_values(float angle, int16_t rpm, int16_t amp, u
     this->rpm = rpm;
     this->amp = amp;
     this->temp = temp;
+    if (count % debug_print_cycle == 0)
+    {
+        Serial.print("Received: \n");
+        Serial.print("angle: ");
+        Serial.print(angle);
+        Serial.print(", ");
+        Serial.print("rpm: ");
+        Serial.print(rpm);
+        Serial.print(", ");
+        Serial.print("amp: ");
+        Serial.print(amp);
+        Serial.print(", ");
+        Serial.print("temp: ");
+        Serial.print(temp);
+        Serial.print("\n\n");
+    }
 }
 
 void PIDController::set_target_rpm(int16_t target_rpm)
@@ -18,7 +38,7 @@ void PIDController::set_target_rpm(int16_t target_rpm)
     this->target_rpm = target_rpm;
 }
 
-float PIDController::update()
+float PIDController::update_output()
 {
     float current_error = static_cast<float>(target_rpm - rpm);
     integral += current_error * static_cast<float>(interval);
@@ -31,5 +51,34 @@ float PIDController::update()
         integral = 0;
     }
 
+    if (count % debug_print_cycle == 0)
+    {
+        Serial.println("Sent: \n");
+        Serial.print("output: ");
+        Serial.print(clamped_output);
+        Serial.print("mA, ");
+        Serial.print("p: ");
+        Serial.print(kp * current_error);
+        Serial.print(", ");
+        Serial.print("i: ");
+        Serial.print(ki * integral);
+        Serial.print(", ");
+        Serial.print("d: ");
+        Serial.print(kd * derivative);
+        Serial.print("current rpm: ");
+        Serial.print(rpm);
+        Serial.print("rpm, ");
+        Serial.print("target rpm: ");
+        Serial.print(target_rpm);
+        Serial.print("rpm, ");
+        Serial.print("error: ");
+        Serial.print(current_error);
+        Serial.print("rpm, ");
+        Serial.print("\n\n");
+    }
+
+    previous_error = current_error;
+
+    count++;
     return clamped_output;
 }
