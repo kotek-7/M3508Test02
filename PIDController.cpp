@@ -1,7 +1,7 @@
 #include <Arduino.h>
-#include <PIDController.hpp>
+#include "PIDController.hpp"
 
-constexpr uint8_t debug_print_cycle = 20;
+constexpr uint8_t debug_print_cycle = 10;
 
 PIDController::PIDController(const float kp, const float ki, const float kd, const float clamping_output, const uint32_t interval)
     : kp(kp), ki(ki), kd(kd), clamping_output(clamping_output), interval(interval)
