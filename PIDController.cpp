@@ -3,13 +3,13 @@
 
 constexpr uint8_t debug_print_cycle = 20;
 
-PIDController::PIDController(float kp, float ki, float kd, float clamping_output, uint32_t interval)
+PIDController::PIDController(const float kp, const float ki, const float kd, const float clamping_output, const uint32_t interval)
     : kp(kp), ki(ki), kd(kd), clamping_output(clamping_output), interval(interval)
 {
     count = 0;
 }
 
-void PIDController::set_feedback_values(float angle, int16_t rpm, int16_t amp, uint8_t temp)
+void PIDController::set_feedback_values(const float angle, const int16_t rpm, const int16_t amp, const uint8_t temp)
 {
     this->angle = angle;
     this->rpm = rpm;
@@ -33,7 +33,7 @@ void PIDController::set_feedback_values(float angle, int16_t rpm, int16_t amp, u
     }
 }
 
-void PIDController::set_target_rpm(int16_t target_rpm)
+void PIDController::set_target_rpm(const int16_t target_rpm)
 {
     this->target_rpm = target_rpm;
 }
