@@ -1,6 +1,6 @@
 #include <mcp_can.h>
 #include <SPI.h>
-#include "PIDController.hpp"
+#include "PIDController.ino"
 
 // [SPIメモ]
 // CS: pin 10
