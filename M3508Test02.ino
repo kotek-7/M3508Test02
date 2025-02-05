@@ -18,7 +18,7 @@ constexpr uint32_t serial_read_interval = 100;
 constexpr float kp = 0.5f;
 constexpr float ki = 0.0003f;
 constexpr float kd = 40;
-constexpr float clamping_output = 1000;
+constexpr float clamping_output = 2000;
 
 /// @brief 前回のCAN送信時間
 uint32_t previous_can_send_millis;
@@ -52,7 +52,7 @@ void loop()
     static PIDController pid_controller{kp, ki, kd, clamping_output, can_send_interval};
 
     /// @brief モータに送信する電流値(mA)
-    static int32_t command_currents[4] = {500, 0, 0, 0};
+    static int32_t command_currents[4] = {0, 0, 0, 0};
 
     /// @brief loop()の実行回数
     static uint32_t count;

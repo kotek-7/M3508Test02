@@ -53,7 +53,7 @@ float PIDController::update_output()
 
     if (count % debug_print_cycle == 0)
     {
-        Serial.println("Sent: \n");
+        Serial.print("Sent: \n");
         Serial.print("output: ");
         Serial.print(clamped_output);
         Serial.print("mA, ");
@@ -65,6 +65,7 @@ float PIDController::update_output()
         Serial.print(", ");
         Serial.print("d: ");
         Serial.print(kd * derivative);
+        Serial.print(", ");
         Serial.print("current rpm: ");
         Serial.print(rpm);
         Serial.print("rpm, ");
